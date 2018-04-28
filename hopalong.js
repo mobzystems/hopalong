@@ -1,3 +1,4 @@
+"use strict";
 var HopalongApp = /** @class */ (function () {
     function HopalongApp() {
         // The Hopalong algorithm's parameters A, B and C
@@ -6,6 +7,8 @@ var HopalongApp = /** @class */ (function () {
         this.c = -0.5;
         // The speed of the animation, in number of points to draw per frame
         this.speed = 1000;
+        // The zoom level
+        this.zoom = 20;
         // State of the animation: the current coordinate
         this.currentX = 0.0;
         this.currentY = 0.0;
@@ -18,6 +21,9 @@ var HopalongApp = /** @class */ (function () {
         this.points = 0; // Total points calculated
         this.hits = 0; // Total number of hits (pixels within canvas)
         this.gap = 0; // Consecutive misses counter. Reset on every hit
+        // An ImageData object to use to transfer the pixels drawn
+        // so far onto to the canvas
+        this.imgData = null;
         // Cross-browser requestFrame method
         this.requestFrame = window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
@@ -34,6 +40,7 @@ var HopalongApp = /** @class */ (function () {
         document.getElementById("parameterB").value = this.b.toString();
         document.getElementById("parameterC").value = this.c.toString();
         document.getElementById("speed").value = this.speed.toString();
+        document.getElementById("zoom").value = this.zoom.toString();
         this.reset();
         this.requestNextFrame();
     }
@@ -50,6 +57,8 @@ var HopalongApp = /** @class */ (function () {
     };
     // Draw a single frame. This means adding 'speed' pixels to the image
     HopalongApp.prototype.draw = function (time) {
+        if (this.canvas === null || this.context === null || this.imgData === null || this.status === null)
+            return;
         // Update the canvas' size (WHY?)
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
@@ -65,8 +74,8 @@ var HopalongApp = /** @class */ (function () {
             this.currentX = xx;
             this.currentY = yy;
             // Calculate a pixel coordinate on the canvas
-            var xpos = Math.round(centerX + this.currentX * 20);
-            var ypos = Math.round(centerY + this.currentY * 20);
+            var xpos = Math.round(centerX + this.currentX * this.zoom);
+            var ypos = Math.round(centerY + this.currentY * this.zoom);
             // Does it fall within the size of the canvas?
             if (xpos >= 0 && xpos < this.imgData.width && ypos >= 0 && ypos < this.imgData.height) {
                 // Yes - calculate the offset in the image data
@@ -119,8 +128,15 @@ var HopalongApp = /** @class */ (function () {
     HopalongApp.prototype.updateSpeed = function (e) {
         this.speed = parseInt(e.value);
     };
+    // Update zoom from the input element. Resets the animation!
+    HopalongApp.prototype.updateZoom = function (e) {
+        this.zoom = parseInt(e.value);
+        this.reset();
+    };
     // Reset the animation
     HopalongApp.prototype.reset = function () {
+        if (this.context === null)
+            return;
         // Create new image data
         this.imgData = this.context.createImageData(screen.width, screen.height);
         // Set all pixels to white

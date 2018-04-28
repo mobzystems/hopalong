@@ -6,6 +6,8 @@ class HopalongApp {
 
 	// The speed of the animation, in number of points to draw per frame
 	private speed: number = 1000;
+	// The zoom level
+	private zoom: number = 20;
 
 	// State of the animation: the current coordinate
 	private currentX: number = 0.0;
@@ -23,13 +25,13 @@ class HopalongApp {
 	private gap = 0; 			// Consecutive misses counter. Reset on every hit
 
 	// UI elements
-	private canvas: HTMLCanvasElement;
-	private context: CanvasRenderingContext2D;
-	private status: HTMLElement;
+	private canvas: HTMLCanvasElement | null;
+	private context: CanvasRenderingContext2D | null;
+	private status: HTMLElement | null;
 
 	// An ImageData object to use to transfer the pixels drawn
 	// so far onto to the canvas
-	private imgData: ImageData;
+	private imgData: ImageData | null = null;
 
 	// Cross-browser requestFrame method
 	private requestFrame: (callback: FrameRequestCallback) => number =
@@ -52,6 +54,7 @@ class HopalongApp {
 		(<HTMLInputElement>document.getElementById("parameterB")).value = this.b.toString();
 		(<HTMLInputElement>document.getElementById("parameterC")).value = this.c.toString();
 		(<HTMLInputElement>document.getElementById("speed")).value = this.speed.toString();
+		(<HTMLInputElement>document.getElementById("zoom")).value = this.zoom.toString();
 
 		this.reset();
 
@@ -73,6 +76,9 @@ class HopalongApp {
 
 	// Draw a single frame. This means adding 'speed' pixels to the image
 	private draw(time: number): void {
+		if (this.canvas === null || this.context === null || this.imgData === null || this.status === null)
+			return;
+
 		// Update the canvas' size (WHY?)
 		this.canvas.width = this.canvas.clientWidth;
 		this.canvas.height = this.canvas.clientHeight;
@@ -91,8 +97,8 @@ class HopalongApp {
 			this.currentY = yy;
 
 			// Calculate a pixel coordinate on the canvas
-			var xpos: number = Math.round(centerX + this.currentX * 20);
-			var ypos: number = Math.round(centerY + this.currentY * 20);
+			var xpos: number = Math.round(centerX + this.currentX * this.zoom);
+			var ypos: number = Math.round(centerY + this.currentY * this.zoom);
 
 			// Does it fall within the size of the canvas?
 			if (xpos >= 0 && xpos < this.imgData.width && ypos >= 0 && ypos < this.imgData.height) {
@@ -157,8 +163,16 @@ class HopalongApp {
 		this.speed = parseInt(e.value);
 	}
 
+	// Update zoom from the input element. Resets the animation!
+	updateZoom(e: HTMLInputElement): void {
+		this.zoom = parseInt(e.value);
+		this.reset();
+	}
+
 	// Reset the animation
 	reset(): void {
+		if (this.context === null)
+			return;
 		// Create new image data
 		this.imgData = this.context.createImageData(screen.width, screen.height);
 		// Set all pixels to white
