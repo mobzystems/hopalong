@@ -1,14 +1,11 @@
 class HopalongApp {
-	private canvas: HTMLCanvasElement;
-	private context: CanvasRenderingContext2D;
-
 	// The Hopalong algorithm's parameters A, B and C
 	private a: number = 4.0;
 	private b: number = 3.0;
 	private c: number = -0.5;
 
 	// The speed of the animation, in number of points to draw per frame
-	private speed: number = 100;
+	private speed: number = 1000;
 
 	// State of the animation: the current coordinate
 	private currentX: number = 0.0;
@@ -25,6 +22,11 @@ class HopalongApp {
 	private hits = 0;			// Total number of hits (pixels within canvas)
 	private gap = 0; 			// Consecutive misses counter. Reset on every hit
 
+	// UI elements
+	private canvas: HTMLCanvasElement;
+	private context: CanvasRenderingContext2D;
+	private status: HTMLElement;
+
 	// An ImageData object to use to transfer the pixels drawn
 	// so far onto to the canvas
 	private imgData: ImageData;
@@ -34,17 +36,22 @@ class HopalongApp {
 		window.requestAnimationFrame ||
 		window.webkitRequestAnimationFrame ||
 		(<any>window).mozRequestAnimationFrame ||
+		(<any>window).oRequestAnimationFrame ||
 		((cb) => window.setTimeout(cb, 1000 / 60));
 
-	// private requestFrameBound = this.requestFrame.bind(window);
-
 	public constructor() {
+		// Get the canvas element
 		this.canvas = <HTMLCanvasElement>document.getElementById("canvas");
+		// Get the canvas' 2D context
 		this.context = this.canvas.getContext("2d");
 
+		this.status = document.getElementById("status");
+
+		// Update the UI with our values
 		(<HTMLInputElement>document.getElementById("parameterA")).value = this.a.toString();
 		(<HTMLInputElement>document.getElementById("parameterB")).value = this.b.toString();
 		(<HTMLInputElement>document.getElementById("parameterC")).value = this.c.toString();
+		(<HTMLInputElement>document.getElementById("speed")).value = this.speed.toString();
 
 		this.reset();
 
@@ -52,6 +59,9 @@ class HopalongApp {
 	}
 
 	requestNextFrame(): void {
+		// Call requestFrame() in the context of Window,
+		// instructing it to call draw() in the context of this
+		// This prevents an Illegal Invocation error
 		this.requestFrame.call(window, this.draw.bind(this));
 	}
 
@@ -68,11 +78,8 @@ class HopalongApp {
 		this.canvas.height = this.canvas.clientHeight;
 
 		// Calculate the center of the canvas
-		var centerX: number = this.canvas.clientWidth / 2;
-		var centerY: number = this.canvas.clientHeight / 2;
-		// var canvasSize: number = Math.min(canvas.clientWidth, canvas.clientHeight);
-
-		// context.translate(0.5, 0.5);
+		var centerX: number = this.imgData.width / 2;
+		var centerY: number = this.imgData.height / 2;
 
 		// Draw 'speed' pixels
 		for (var i: number = 0; i < this.speed; i++) {
@@ -113,7 +120,7 @@ class HopalongApp {
 		}
 
 		// After adding all pixels, draw the image data onto the canvas
-		this.context.putImageData(this.imgData, 0, 0);
+		this.context.putImageData(this.imgData, (this.canvas.clientWidth - this.imgData.width) / 2, (this.canvas.clientHeight - this.imgData.height) / 2);
 
 		// Increment the frame counter. If it is a multiple of 60
 		// choose a new color
@@ -124,7 +131,7 @@ class HopalongApp {
 		}
 
 		// Update the UI
-		document.getElementById("counter").innerHTML = this.points.toString() + " / " + this.hits.toString() + " / " + this.gap.toString();
+		this.status.innerHTML = this.points.toString() + " / " + this.hits.toString() + " / " + this.gap.toString();
 
 		// Schedule another frame to draw
 		this.requestNextFrame();
@@ -153,7 +160,7 @@ class HopalongApp {
 	// Reset the animation
 	reset(): void {
 		// Create new image data
-		this.imgData = this.context.createImageData(this.canvas.clientWidth, this.canvas.clientHeight);
+		this.imgData = this.context.createImageData(screen.width, screen.height);
 		// Set all pixels to white
 		var data = this.imgData.data;
 		for (var i = 0; i < this.imgData.width * this.imgData.height * 4; i += 4) {

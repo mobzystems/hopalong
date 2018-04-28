@@ -1,12 +1,11 @@
 var HopalongApp = /** @class */ (function () {
-    // private requestFrameBound = this.requestFrame.bind(window);
     function HopalongApp() {
         // The Hopalong algorithm's parameters A, B and C
         this.a = 4.0;
         this.b = 3.0;
         this.c = -0.5;
         // The speed of the animation, in number of points to draw per frame
-        this.speed = 100;
+        this.speed = 1000;
         // State of the animation: the current coordinate
         this.currentX = 0.0;
         this.currentY = 0.0;
@@ -23,16 +22,25 @@ var HopalongApp = /** @class */ (function () {
         this.requestFrame = window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
             window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
             (function (cb) { return window.setTimeout(cb, 1000 / 60); });
+        // Get the canvas element
         this.canvas = document.getElementById("canvas");
+        // Get the canvas' 2D context
         this.context = this.canvas.getContext("2d");
+        this.status = document.getElementById("status");
+        // Update the UI with our values
         document.getElementById("parameterA").value = this.a.toString();
         document.getElementById("parameterB").value = this.b.toString();
         document.getElementById("parameterC").value = this.c.toString();
+        document.getElementById("speed").value = this.speed.toString();
         this.reset();
         this.requestNextFrame();
     }
     HopalongApp.prototype.requestNextFrame = function () {
+        // Call requestFrame() in the context of Window,
+        // instructing it to call draw() in the context of this
+        // This prevents an Illegal Invocation error
         this.requestFrame.call(window, this.draw.bind(this));
     };
     // Not sure if we can use Math.sign() instead of this function,
@@ -46,10 +54,8 @@ var HopalongApp = /** @class */ (function () {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
         // Calculate the center of the canvas
-        var centerX = this.canvas.clientWidth / 2;
-        var centerY = this.canvas.clientHeight / 2;
-        // var canvasSize: number = Math.min(canvas.clientWidth, canvas.clientHeight);
-        // context.translate(0.5, 0.5);
+        var centerX = this.imgData.width / 2;
+        var centerY = this.imgData.height / 2;
         // Draw 'speed' pixels
         for (var i = 0; i < this.speed; i++) {
             // Calculate the new values xx and yy
@@ -84,7 +90,7 @@ var HopalongApp = /** @class */ (function () {
             this.points++;
         }
         // After adding all pixels, draw the image data onto the canvas
-        this.context.putImageData(this.imgData, 0, 0);
+        this.context.putImageData(this.imgData, (this.canvas.clientWidth - this.imgData.width) / 2, (this.canvas.clientHeight - this.imgData.height) / 2);
         // Increment the frame counter. If it is a multiple of 60
         // choose a new color
         if (++this.frameCounter % 60 == 0) {
@@ -93,7 +99,7 @@ var HopalongApp = /** @class */ (function () {
             this.currentB = Math.floor(Math.random() * 256);
         }
         // Update the UI
-        document.getElementById("counter").innerHTML = this.points.toString() + " / " + this.hits.toString() + " / " + this.gap.toString();
+        this.status.innerHTML = this.points.toString() + " / " + this.hits.toString() + " / " + this.gap.toString();
         // Schedule another frame to draw
         this.requestNextFrame();
     };
@@ -116,7 +122,7 @@ var HopalongApp = /** @class */ (function () {
     // Reset the animation
     HopalongApp.prototype.reset = function () {
         // Create new image data
-        this.imgData = this.context.createImageData(this.canvas.clientWidth, this.canvas.clientHeight);
+        this.imgData = this.context.createImageData(screen.width, screen.height);
         // Set all pixels to white
         var data = this.imgData.data;
         for (var i = 0; i < this.imgData.width * this.imgData.height * 4; i += 4) {
