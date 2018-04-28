@@ -1,8 +1,10 @@
 var canvas;
 var context;
 // The Hopalong algorithm's parameters A, B and C
-var a = 4.0, b = 3, c = -0.5;
-// The speed of the animation, in nubmer of points to draw per frame
+var a = 4.0;
+var b = 3.0;
+var c = -0.5;
+// The speed of the animation, in number of points to draw per frame
 var speed = 100;
 // State of the animation: the current coordinate
 var currentX = 0.0;
@@ -12,18 +14,18 @@ var currentR = 255;
 var currentG = 255;
 var currentB = 255;
 // Data about the animation:
-var frameCounter = 0;
-var points = 0;
-var hits = 0;
-var gap = 0;
+var frameCounter = 0; // Total number of frames drawn
+var points = 0; // Total points calculated
+var hits = 0; // Total number of hits (pixels within canvas)
+var gap = 0; // Consecutive misses counter. Reset on every hit
 // An ImageData object to use to transfer the pixels drawn
 // so far onto to the canvas
 var imgData;
-// var CanvasMargin = 10;
-// var TimerInterval = 40;
-var requestFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function (callback) {
-    window.setTimeout(callback, 1000 / 60);
-};
+// Cross-browser requestFrame method
+var requestFrame = window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    (function (cb) { return window.setTimeout(cb, 1000 / 60); });
 window.onload = function (e) {
     canvas = document.getElementById("canvas");
     context = canvas.getContext("2d");
@@ -33,6 +35,11 @@ window.onload = function (e) {
     reset();
     requestFrame(draw);
 };
+// Not sure if we can use Math.sign() instead of this function,
+// because Math.sign() can return -0 and NaN.
+function sign(x) {
+    return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
+}
 // Draw a single frame. This means adding 'speed' pixels to the image
 function draw() {
     // Update the canvas' size (WHY?)
@@ -46,7 +53,7 @@ function draw() {
     // Draw 'speed' pixels
     for (var i = 0; i < speed; i++) {
         // Calculate the new values xx and yy
-        var xx = currentY - Math.sign(currentX) * Math.sqrt(Math.abs(b * currentX - c));
+        var xx = currentY - sign(currentX) * Math.sqrt(Math.abs(b * currentX - c));
         var yy = a - currentX;
         // Set those as new coordinates
         currentX = xx;
@@ -70,7 +77,7 @@ function draw() {
         }
         else {
             // Count this as a miss (i.e. we did not draw a pixel on the canvas)
-            // by uncrementing the hit-gap
+            // by incrementing the hit-gap
             gap++;
         }
         // Count both hits and misses as a point
