@@ -1,6 +1,6 @@
 "use strict";
 var HopalongApp = /** @class */ (function () {
-    function HopalongApp() {
+    function HopalongApp(canvas) {
         // The Hopalong algorithm's parameters A, B and C
         this.a = 4.0;
         this.b = 3.0;
@@ -31,10 +31,12 @@ var HopalongApp = /** @class */ (function () {
             window.oRequestAnimationFrame ||
             (function (cb) { return window.setTimeout(cb, 1000 / 60); });
         // Get the canvas element
-        this.canvas = document.getElementById("canvas");
+        this.canvas = canvas;
         // Get the canvas' 2D context
         this.context = this.canvas.getContext("2d");
-        this.status = document.getElementById("status");
+        this.pointsElement = document.getElementById("points");
+        this.hitsElement = document.getElementById("hits");
+        this.gapElement = document.getElementById("gap");
         // Update the UI with our values
         document.getElementById("parameterA").value = this.a.toString();
         document.getElementById("parameterB").value = this.b.toString();
@@ -42,13 +44,15 @@ var HopalongApp = /** @class */ (function () {
         document.getElementById("speed").value = this.speed.toString();
         document.getElementById("zoom").value = this.zoom.toString();
         this.reset();
+        // Bind the redraw method so we don't have to redo that on every frame
+        this.boundRedraw = this.drawFrame.bind(this);
         this.requestNextFrame();
     }
     HopalongApp.prototype.requestNextFrame = function () {
         // Call requestFrame() in the context of Window,
         // instructing it to call draw() in the context of this
         // This prevents an Illegal Invocation error
-        this.requestFrame.call(window, this.draw.bind(this));
+        this.requestFrame.call(window, this.boundRedraw);
     };
     // Not sure if we can use Math.sign() instead of this function,
     // because Math.sign() can return -0 and NaN.
@@ -56,8 +60,9 @@ var HopalongApp = /** @class */ (function () {
         return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
     };
     // Draw a single frame. This means adding 'speed' pixels to the image
-    HopalongApp.prototype.draw = function (time) {
-        if (this.canvas === null || this.context === null || this.imgData === null || this.status === null)
+    HopalongApp.prototype.drawFrame = function (time) {
+        if (this.canvas === null || this.context === null || this.imgData === null ||
+            this.pointsElement === null || this.hitsElement === null || this.gapElement === null)
             return;
         // Update the canvas' size (WHY?)
         this.canvas.width = this.canvas.clientWidth;
@@ -67,12 +72,12 @@ var HopalongApp = /** @class */ (function () {
         var centerY = this.imgData.height / 2;
         // Draw 'speed' pixels
         for (var i = 0; i < this.speed; i++) {
-            // Calculate the new values xx and yy
-            var xx = this.currentY - this.sign(this.currentX) * Math.sqrt(Math.abs(this.b * this.currentX - this.c));
-            var yy = this.a - this.currentX;
+            // Calculate the new values newX and newY
+            var newX = this.currentY - this.sign(this.currentX) * Math.sqrt(Math.abs(this.b * this.currentX - this.c));
+            var newY = this.a - this.currentX;
             // Set those as new coordinates
-            this.currentX = xx;
-            this.currentY = yy;
+            this.currentX = newX;
+            this.currentY = newY;
             // Calculate a pixel coordinate on the canvas
             var xpos = Math.round(centerX + this.currentX * this.zoom);
             var ypos = Math.round(centerY + this.currentY * this.zoom);
@@ -108,7 +113,9 @@ var HopalongApp = /** @class */ (function () {
             this.currentB = Math.floor(Math.random() * 256);
         }
         // Update the UI
-        this.status.innerHTML = this.points.toString() + " / " + this.hits.toString() + " / " + this.gap.toString();
+        this.pointsElement.innerHTML = this.points.toLocaleString();
+        this.hitsElement.innerHTML = this.hits.toLocaleString();
+        this.gapElement.innerHTML = this.gap.toLocaleString();
         // Schedule another frame to draw
         this.requestNextFrame();
     };
@@ -130,7 +137,7 @@ var HopalongApp = /** @class */ (function () {
     };
     // Update zoom from the input element. Resets the animation!
     HopalongApp.prototype.updateZoom = function (e) {
-        this.zoom = parseInt(e.value);
+        this.zoom = parseFloat(e.value);
         this.reset();
     };
     // Reset the animation
@@ -161,5 +168,5 @@ var HopalongApp = /** @class */ (function () {
 }());
 var app;
 window.onload = function (e) {
-    app = new HopalongApp();
+    app = new HopalongApp(document.getElementById("canvas"));
 };

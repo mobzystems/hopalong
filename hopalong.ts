@@ -27,11 +27,16 @@ class HopalongApp {
 	// UI elements
 	private canvas: HTMLCanvasElement | null;
 	private context: CanvasRenderingContext2D | null;
-	private status: HTMLElement | null;
+	private pointsElement: HTMLElement | null;
+	private hitsElement: HTMLElement | null;
+	private gapElement: HTMLElement | null;
 
 	// An ImageData object to use to transfer the pixels drawn
 	// so far onto to the canvas
 	private imgData: ImageData | null = null;
+
+	// Bound version of the redraw() method
+	private boundRedraw: any;
 
 	// Cross-browser requestFrame method
 	private requestFrame: (callback: FrameRequestCallback) => number =
@@ -41,13 +46,15 @@ class HopalongApp {
 		(<any>window).oRequestAnimationFrame ||
 		((cb) => window.setTimeout(cb, 1000 / 60));
 
-	public constructor() {
+	public constructor(canvas: HTMLCanvasElement) {
 		// Get the canvas element
-		this.canvas = <HTMLCanvasElement>document.getElementById("canvas");
+		this.canvas = canvas;
 		// Get the canvas' 2D context
 		this.context = this.canvas.getContext("2d");
 
-		this.status = document.getElementById("status");
+		this.pointsElement = document.getElementById("points");
+		this.hitsElement = document.getElementById("hits");
+		this.gapElement = document.getElementById("gap");
 
 		// Update the UI with our values
 		(<HTMLInputElement>document.getElementById("parameterA")).value = this.a.toString();
@@ -58,14 +65,17 @@ class HopalongApp {
 
 		this.reset();
 
+		// Bind the redraw method so we don't have to redo that on every frame
+		this.boundRedraw = this.drawFrame.bind(this);
+
 		this.requestNextFrame();
 	}
 
-	requestNextFrame(): void {
+	private requestNextFrame(): void {
 		// Call requestFrame() in the context of Window,
 		// instructing it to call draw() in the context of this
 		// This prevents an Illegal Invocation error
-		this.requestFrame.call(window, this.draw.bind(this));
+		this.requestFrame.call(window, this.boundRedraw);
 	}
 
 	// Not sure if we can use Math.sign() instead of this function,
@@ -75,9 +85,10 @@ class HopalongApp {
 	}
 
 	// Draw a single frame. This means adding 'speed' pixels to the image
-	private draw(time: number): void {
-		if (this.canvas === null || this.context === null || this.imgData === null || this.status === null)
-			return;
+	private drawFrame(time: number): void {
+		if (this.canvas === null || this.context === null || this.imgData === null ||
+			this.pointsElement === null || this.hitsElement === null || this.gapElement === null)
+		return;
 
 		// Update the canvas' size (WHY?)
 		this.canvas.width = this.canvas.clientWidth;
@@ -89,12 +100,12 @@ class HopalongApp {
 
 		// Draw 'speed' pixels
 		for (var i: number = 0; i < this.speed; i++) {
-			// Calculate the new values xx and yy
-			var xx: number = this.currentY - this.sign(this.currentX) * Math.sqrt(Math.abs(this.b * this.currentX - this.c));
-			var yy: number = this.a - this.currentX;
+			// Calculate the new values newX and newY
+			var newX: number = this.currentY - this.sign(this.currentX) * Math.sqrt(Math.abs(this.b * this.currentX - this.c));
+			var newY: number = this.a - this.currentX;
 			// Set those as new coordinates
-			this.currentX = xx;
-			this.currentY = yy;
+			this.currentX = newX;
+			this.currentY = newY;
 
 			// Calculate a pixel coordinate on the canvas
 			var xpos: number = Math.round(centerX + this.currentX * this.zoom);
@@ -137,40 +148,42 @@ class HopalongApp {
 		}
 
 		// Update the UI
-		this.status.innerHTML = this.points.toString() + " / " + this.hits.toString() + " / " + this.gap.toString();
+		this.pointsElement.innerHTML = this.points.toLocaleString()
+		this.hitsElement.innerHTML = this.hits.toLocaleString();
+		this.gapElement.innerHTML = this.gap.toLocaleString();
 
 		// Schedule another frame to draw
 		this.requestNextFrame();
 	}
 
 	// Update parameter A from the input element
-	updateA(e: HTMLInputElement): void {
+	public updateA(e: HTMLInputElement): void {
 		this.a = parseInt(e.value);
 	}
 
 	// Update parameter B from the input element
-	updateB(e: HTMLInputElement): void {
+	public updateB(e: HTMLInputElement): void {
 		this.b = parseInt(e.value);
 	}
 
 	// Update parameter C from the input element
-	updateC(e: HTMLInputElement): void {
+	public updateC(e: HTMLInputElement): void {
 		this.c = parseInt(e.value);
 	}
 
 	// Update animation speed from the input element
-	updateSpeed(e: HTMLInputElement): void {
+	public updateSpeed(e: HTMLInputElement): void {
 		this.speed = parseInt(e.value);
 	}
 
 	// Update zoom from the input element. Resets the animation!
-	updateZoom(e: HTMLInputElement): void {
-		this.zoom = parseInt(e.value);
+	public updateZoom(e: HTMLInputElement): void {
+		this.zoom = parseFloat(e.value);
 		this.reset();
 	}
 
 	// Reset the animation
-	reset(): void {
+	public reset(): void {
 		if (this.context === null)
 			return;
 		// Create new image data
@@ -200,5 +213,5 @@ class HopalongApp {
 let app: HopalongApp;
 
 window.onload = function (e) {
-	app = new HopalongApp();
+	app = new HopalongApp(<HTMLCanvasElement>document.getElementById("canvas"));
 };

@@ -8,42 +8,34 @@
 	<link rel="shortcut icon" href="/images/mobzystems/favicon.ico" type="image/x-icon" />
 	<title>Hopalong</title>
 	<style>
-		html,
-		body,
-		canvas,
-		div {
+		html, body, canvas,	div {
 			margin: 0;
 			padding: 0;
 			border: none;
 		}
-
 		body {
 			font-family: Arial, Helvetica, sans-serif;
 			font-size: 10pt;
 		}
-
 		input {
 			width: 100px;
 		}
-
 		label {
 			display: inline-block;
 			margin-top: 10px;
 			margin-left: 10px;
 			width: 50px;
 		}
-
-		input,
-		label {
+		button {
+			margin-top: 10px;
+		}
+		input, 	label {
 			text-align: right;
 		}
-
-		label,
-		a, 
-		span {
+		label, a, span, p {
 			color: white;
 		}
-		span {
+		span, p {
 			background-color: black;
 		}
 	</style>
@@ -54,31 +46,42 @@
 	<div style="width: 100%; height: 100%; position: absolute; right: 0; bottom: 0;">
 		<div>
 			<label for="parameterA">A:</label>
-			<input type="number" name="parameterA" id="parameterA" onkeyup="app.updateA(this)" oninput="app.updateA(this)" />
+			<input type="number" title="Parameter A of the Hopaling algorithm" name="parameterA" id="parameterA" onkeyup="app.updateA(this)" oninput="app.updateA(this)" />
 		</div>
 		<div>
 			<label for="parameterB">B:</label>
-			<input type="number" name="parameterB" id="parameterB" onkeyup="app.updateB(this)" oninput="app.updateB(this)" />
+			<input type="number" title="Parameter B of the Hopaling algorithm" name="parameterB" id="parameterB" onkeyup="app.updateB(this)" oninput="app.updateB(this)" />
 		</div>
 		<div>
 			<label for="parameterC">C:</label>
-			<input type="number" name="parameterC" id="parameterC" onkeyup="app.updateC(this)" oninput="app.updateC(this)" />
+			<input type="number" title="Parameter B of the Hopaling algorithm" name="parameterC" id="parameterC" onkeyup="app.updateC(this)" oninput="app.updateC(this)" />
 		</div>
 		<div>
 			<label for="speed">Speed:</label>
-			<input type="number" name="speed" id="speed" onkeyup="app.updateSpeed(this)" oninput="app.updateSpeed(this)" />
+			<input type="number" title="Number of points to add on each frame (1/60s)" name="speed" id="speed" onkeyup="app.updateSpeed(this)" oninput="app.updateSpeed(this)" />
 		</div>
 		<div>
 			<label for="zoom">Zoom:</label>
-			<input type="number" name="zoom" id="zoom" onkeyup="app.updateZoom(this)" oninput="app.updateZoom(this)" />
+			<input type="number" title="Multiplication factor to screen" name="zoom" id="zoom" onkeyup="app.updateZoom(this)" oninput="app.updateZoom(this)" />
 		</div>
 		<div>
 			<label></label>
-			<button onclick="app.reset()">Reset</button>
-			<span id="status"></span>
+			<button title="Restart the animation" onclick="app.reset()">Reset</button>
+		</div>
+		<div>
+			<label>Points:</label>
+			<span title="Total number of points calculated" id="points"></span>
+		</div>
+		<div>
+			<label>Hits:</label>
+			<span title="Total number of 'hits'" id="hits"></span>
+		</div>
+		<div>
+			<label>Misses:</label>
+			<span title="Consecutive 'misses'" id="gap"></span>
 		</div>
 		<a href="https://www.mobzystems.com/blog/hopalong/" target="_blank" style="position: absolute; left: 10px; bottom: 10px;">MOBZystems, Home of Tools</a>
-		<a href="https://twitter.com/scienmag/status/840659110542618625" target="_blank" style="position: absolute; right: 10px; bottom: 10px;">Science Magazine</a>
+		<a href="http://www.fraktalwelt.de/myhome/simpiter2.htm" target="_blank" style="position: absolute; right: 10px; bottom: 10px;">Fraktalwelt</a>
 	</div>
 	<script src="hopalong.js?v=1"></script>
 </body>
