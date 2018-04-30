@@ -158,22 +158,22 @@ class HopalongApp {
 
 	// Update parameter A from the input element
 	public updateA(e: HTMLInputElement): void {
-		this.a = parseInt(e.value);
+		this.a = parseFloat(e.value);
 	}
 
 	// Update parameter B from the input element
 	public updateB(e: HTMLInputElement): void {
-		this.b = parseInt(e.value);
+		this.b = parseFloat(e.value);
 	}
 
 	// Update parameter C from the input element
 	public updateC(e: HTMLInputElement): void {
-		this.c = parseInt(e.value);
+		this.c = parseFloat(e.value);
 	}
 
 	// Update animation speed from the input element
 	public updateSpeed(e: HTMLInputElement): void {
-		this.speed = parseInt(e.value);
+		this.speed = parseFloat(e.value);
 	}
 
 	// Update zoom from the input element. Resets the animation!
