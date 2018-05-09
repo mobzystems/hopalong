@@ -21,9 +21,6 @@ var HopalongApp = /** @class */ (function () {
         this.points = 0; // Total points calculated
         this.hits = 0; // Total number of hits (pixels within canvas)
         this.gap = 0; // Consecutive misses counter. Reset on every hit
-        // An ImageData object to use to transfer the pixels drawn
-        // so far onto to the canvas
-        this.imageData = null;
         // Cross-browser requestFrame method
         this.requestFrame = window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
@@ -61,10 +58,6 @@ var HopalongApp = /** @class */ (function () {
     };
     // Draw a single frame. This means adding 'speed' pixels to the image
     HopalongApp.prototype.drawFrame = function (time) {
-        if (this.imageData === null) {
-            console.log("ImgData is null - call reset() before drawing");
-            return;
-        }
         // Update the canvas' size (WHY?)
         this.canvasElement.width = this.canvasElement.clientWidth;
         this.canvasElement.height = this.canvasElement.clientHeight;
@@ -165,7 +158,7 @@ var HopalongApp = /** @class */ (function () {
     };
     return HopalongApp;
 }());
-// The one and only Hopalong app
+// The one and only Hopalong appie!
 var app;
 window.onload = function (e) {
     app = new HopalongApp(document.getElementById("canvas"));

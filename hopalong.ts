@@ -33,7 +33,7 @@ class HopalongApp {
 
 	// An ImageData object to use to transfer the pixels drawn
 	// so far onto to the canvas
-	private imageData: ImageData | null = null;
+	private imageData!: ImageData;
 
 	// Bound version of the redraw() method
 	private boundRedraw: any;
@@ -50,11 +50,11 @@ class HopalongApp {
 		// Get the canvas element
 		this.canvasElement = canvas;
 		// Get the canvas' 2D context
-		this.context = (this.canvasElement.getContext("2d") as CanvasRenderingContext2D);
+		this.context = this.canvasElement.getContext("2d")!;
 
-		this.pointsElement = (document.getElementById("points") as HTMLElement);
-		this.hitsElement = (document.getElementById("hits") as HTMLElement);
-		this.gapElement = (document.getElementById("gap") as HTMLElement);
+		this.pointsElement = document.getElementById("points")!;
+		this.hitsElement = document.getElementById("hits")!;
+		this.gapElement = document.getElementById("gap")!;
 
 		// Update the UI with our values
 		(document.getElementById("parameterA") as HTMLInputElement).value = this.a.toString();
@@ -86,11 +86,6 @@ class HopalongApp {
 
 	// Draw a single frame. This means adding 'speed' pixels to the image
 	private drawFrame(time: number): void {
-		if (this.imageData === null) {
-			console.log("ImgData is null - call reset() before drawing");
-			return;
-		}
-
 		// Update the canvas' size (WHY?)
 		this.canvasElement.width = this.canvasElement.clientWidth;
 		this.canvasElement.height = this.canvasElement.clientHeight;
@@ -209,7 +204,7 @@ class HopalongApp {
 	}
 }
 
-// The one and only Hopalong app
+// The one and only Hopalong appie!
 let app: HopalongApp;
 
 window.onload = function (e) {
