@@ -1,9 +1,10 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es2016",
+        "target": "es5",
         "jsx": "preserve",
         "strict": true,
+        "watch": true,
     },
     "exclude": [
         "node_modules",

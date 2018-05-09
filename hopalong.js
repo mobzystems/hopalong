@@ -158,7 +158,7 @@ var HopalongApp = /** @class */ (function () {
     };
     return HopalongApp;
 }());
-// The one and only Hopalong appie!
+// The one and only Hopalong app
 var app;
 window.onload = function (e) {
     app = new HopalongApp(document.getElementById("canvas"));

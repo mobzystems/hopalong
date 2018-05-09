@@ -204,7 +204,7 @@ class HopalongApp {
 	}
 }
 
-// The one and only Hopalong appie!
+// The one and only Hopalong app
 let app: HopalongApp;
 
 window.onload = function (e) {
