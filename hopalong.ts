@@ -25,15 +25,15 @@ class HopalongApp {
 	private gap = 0; 			// Consecutive misses counter. Reset on every hit
 
 	// UI elements
-	private canvas: HTMLCanvasElement | null;
-	private context: CanvasRenderingContext2D | null;
-	private pointsElement: HTMLElement | null;
-	private hitsElement: HTMLElement | null;
-	private gapElement: HTMLElement | null;
+	private canvasElement: HTMLCanvasElement;
+	private context: CanvasRenderingContext2D;
+	private pointsElement: HTMLElement;
+	private hitsElement: HTMLElement;
+	private gapElement: HTMLElement;
 
 	// An ImageData object to use to transfer the pixels drawn
 	// so far onto to the canvas
-	private imgData: ImageData | null = null;
+	private imageData: ImageData | null = null;
 
 	// Bound version of the redraw() method
 	private boundRedraw: any;
@@ -42,26 +42,26 @@ class HopalongApp {
 	private requestFrame: (callback: FrameRequestCallback) => number =
 		window.requestAnimationFrame ||
 		window.webkitRequestAnimationFrame ||
-		(<any>window).mozRequestAnimationFrame ||
-		(<any>window).oRequestAnimationFrame ||
+		(window as any).mozRequestAnimationFrame ||
+		(window as any).oRequestAnimationFrame ||
 		((cb) => window.setTimeout(cb, 1000 / 60));
 
 	public constructor(canvas: HTMLCanvasElement) {
 		// Get the canvas element
-		this.canvas = canvas;
+		this.canvasElement = canvas;
 		// Get the canvas' 2D context
-		this.context = this.canvas.getContext("2d");
+		this.context = (this.canvasElement.getContext("2d") as CanvasRenderingContext2D);
 
-		this.pointsElement = document.getElementById("points");
-		this.hitsElement = document.getElementById("hits");
-		this.gapElement = document.getElementById("gap");
+		this.pointsElement = (document.getElementById("points") as HTMLElement);
+		this.hitsElement = (document.getElementById("hits") as HTMLElement);
+		this.gapElement = (document.getElementById("gap") as HTMLElement);
 
 		// Update the UI with our values
-		(<HTMLInputElement>document.getElementById("parameterA")).value = this.a.toString();
-		(<HTMLInputElement>document.getElementById("parameterB")).value = this.b.toString();
-		(<HTMLInputElement>document.getElementById("parameterC")).value = this.c.toString();
-		(<HTMLInputElement>document.getElementById("speed")).value = this.speed.toString();
-		(<HTMLInputElement>document.getElementById("zoom")).value = this.zoom.toString();
+		(document.getElementById("parameterA") as HTMLInputElement).value = this.a.toString();
+		(document.getElementById("parameterB") as HTMLInputElement).value = this.b.toString();
+		(document.getElementById("parameterC") as HTMLInputElement).value = this.c.toString();
+		(document.getElementById("speed") as HTMLInputElement).value = this.speed.toString();
+		(document.getElementById("zoom") as HTMLInputElement).value = this.zoom.toString();
 
 		this.reset();
 
@@ -86,41 +86,42 @@ class HopalongApp {
 
 	// Draw a single frame. This means adding 'speed' pixels to the image
 	private drawFrame(time: number): void {
-		if (this.canvas === null || this.context === null || this.imgData === null ||
-			this.pointsElement === null || this.hitsElement === null || this.gapElement === null)
-		return;
+		if (this.imageData === null) {
+			console.log("ImgData is null - call reset() before drawing");
+			return;
+		}
 
 		// Update the canvas' size (WHY?)
-		this.canvas.width = this.canvas.clientWidth;
-		this.canvas.height = this.canvas.clientHeight;
+		this.canvasElement.width = this.canvasElement.clientWidth;
+		this.canvasElement.height = this.canvasElement.clientHeight;
 
 		// Calculate the center of the canvas
-		var centerX: number = this.imgData.width / 2;
-		var centerY: number = this.imgData.height / 2;
+		const centerX: number = this.imageData.width / 2;
+		const centerY: number = this.imageData.height / 2;
 
 		// Draw 'speed' pixels
-		for (var i: number = 0; i < this.speed; i++) {
+		for (let i: number = 0; i < this.speed; i++) {
 			// Calculate the new values newX and newY
-			var newX: number = this.currentY - this.sign(this.currentX) * Math.sqrt(Math.abs(this.b * this.currentX - this.c));
-			var newY: number = this.a - this.currentX;
+			const newX: number = this.currentY - this.sign(this.currentX) * Math.sqrt(Math.abs(this.b * this.currentX - this.c));
+			const newY: number = this.a - this.currentX;
 			// Set those as new coordinates
 			this.currentX = newX;
 			this.currentY = newY;
 
 			// Calculate a pixel coordinate on the canvas
-			var xpos: number = Math.round(centerX + this.currentX * this.zoom);
-			var ypos: number = Math.round(centerY + this.currentY * this.zoom);
+			const xpos: number = Math.round(centerX + this.currentX * this.zoom);
+			const ypos: number = Math.round(centerY + this.currentY * this.zoom);
 
 			// Does it fall within the size of the canvas?
-			if (xpos >= 0 && xpos < this.imgData.width && ypos >= 0 && ypos < this.imgData.height) {
+			if (xpos >= 0 && xpos < this.imageData.width && ypos >= 0 && ypos < this.imageData.height) {
 				// Yes - calculate the offset in the image data
-				var index = (this.imgData.width * ypos + xpos) * 4;
+				let index = (this.imageData.width * ypos + xpos) * 4;
 
 				// Set the pixel at the new coordinates to the current color
-				this.imgData.data[index++] = this.currentR;   // r
-				this.imgData.data[index++] = this.currentG;   // g
-				this.imgData.data[index++] = this.currentB;   // b
-				this.imgData.data[index++] = 255;        // 0 = transparent, 255 = opaque
+				this.imageData.data[index++] = this.currentR;   // r
+				this.imageData.data[index++] = this.currentG;   // g
+				this.imageData.data[index++] = this.currentB;   // b
+				this.imageData.data[index++] = 255;        // 0 = transparent, 255 = opaque
 
 				// Count this as a hit (i.e. we drew inside the canvas)
 				this.hits++;
@@ -137,7 +138,7 @@ class HopalongApp {
 		}
 
 		// After adding all pixels, draw the image data onto the canvas
-		this.context.putImageData(this.imgData, (this.canvas.clientWidth - this.imgData.width) / 2, (this.canvas.clientHeight - this.imgData.height) / 2);
+		this.context.putImageData(this.imageData, (this.canvasElement.clientWidth - this.imageData.width) / 2, (this.canvasElement.clientHeight - this.imageData.height) / 2);
 
 		// Increment the frame counter. If it is a multiple of 60
 		// choose a new color
@@ -184,13 +185,11 @@ class HopalongApp {
 
 	// Reset the animation
 	public reset(): void {
-		if (this.context === null)
-			return;
 		// Create new image data
-		this.imgData = this.context.createImageData(screen.width, screen.height);
+		this.imageData = this.context.createImageData(screen.width, screen.height);
 		// Set all pixels to white
-		var data = this.imgData.data;
-		for (var i = 0; i < this.imgData.width * this.imgData.height * 4; i += 4) {
+		const data = this.imageData.data;
+		for (let i = 0; i < this.imageData.width * this.imageData.height * 4; i += 4) {
 			data[i + 3] = 255;
 		}
 		// Reset counters
@@ -210,6 +209,7 @@ class HopalongApp {
 	}
 }
 
+// The one and only Hopalong app
 let app: HopalongApp;
 
 window.onload = function (e) {
